@@ -8,6 +8,7 @@ import { Either, left, right } from 'fp-ts/lib/Either'
 import { MiddlewareFunction, reduxMiddlewareFactory } from 'redux-middleware-factory'
 import { Action, AnyAction, Dispatch, MiddlewareAPI } from '@reduxjs/toolkit'
 import { diff } from 'deep-diff'
+import { renderDiff } from './diff'
 
 type ExecuteActionResult<BA, NA> = {
   result: BA | NA
@@ -57,7 +58,11 @@ const createLogger: <S>(options: LoggerOption<S>) => MiddlewareFunction<S> = <S>
       const afterState = store.getState()
       console.log(`after state:${JSON.stringify(afterState)}`)
       console.log(`result:${JSON.stringify(result)}`)
-      console.log(`diff:${JSON.stringify(diff(beforeState, afterState))}`)
+      diff(beforeState, afterState)?.forEach(diff => {
+        if (diff) {
+          console.log(`diff:${JSON.stringify(renderDiff(diff))}`)
+        }
+      })
       return result.result
     }
   )

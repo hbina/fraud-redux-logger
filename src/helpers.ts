@@ -1,7 +1,7 @@
 import { LogTime } from './types'
 
-export const repeat: (a: string, b: number) => string = (str: string, times: number) =>
-  new Array(times + 1).join(str)
+export const repeat: <T>(a: T, b: number) => string = <T>(str: T, times: number) =>
+  new Array(times + 1).join(`${JSON.stringify(str)}`)
 
 export const pad: (a: number, b: number) => string = (num: number, maxLength: number) =>
   repeat('0', maxLength - num.toString().length) + num

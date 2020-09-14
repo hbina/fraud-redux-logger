@@ -27,7 +27,7 @@ export function style(kind: DiffKind) {
 
 /// TODO :: The original implementation assumes that `path` always exist,
 ///         maybe  we should provide a Proxy type with that guarantee.
-export function render<S>(diff: Diff<S, S>) {
+export function renderDiff<S>(diff: Diff<S, S>) {
   switch (diff.kind) {
     case 'E': {
       const { path, lhs, rhs } = diff
@@ -71,7 +71,7 @@ export default function diffLogger<S>(
   if (diff) {
     diff.forEach(elem => {
       const { kind } = elem
-      const output = render(elem)
+      const output = renderDiff(elem)
 
       logger.log(`%c ${dictionary[kind].text}`, style(kind), ...output)
     })

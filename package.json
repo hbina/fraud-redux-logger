@@ -121,6 +121,7 @@
     "@reduxjs/toolkit": "^1.4.0",
     "@types/deep-diff": "^1.0.0",
     "deep-diff": "^1.0.2",
-    "fp-ts": "^2.8.2"
+    "fp-ts": "^2.8.2",
+    "redux-middleware-factory": "^0.0.0"
   }
 }

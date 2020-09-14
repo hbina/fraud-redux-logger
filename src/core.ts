@@ -1,5 +1,4 @@
 import { formatTime } from './helpers'
-import diffLogger from './diff'
 import { LoggerOption, LogLevelType, ReduxState, ReduxAction, LogTime, LogEntry } from './types'
 import { isSome } from 'fp-ts/lib/Option'
 
@@ -7,16 +6,6 @@ type ObjectWithLogLevel = {
   type: LogLevelType
 }
 type LevelFunction = (a: ReduxState) => string | LevelFunction | ObjectWithLogLevel
-
-/// TODO :: For now, just a string.
-function getLogLevel(
-  level: string | LevelFunction | ObjectWithLogLevel,
-  _action: ReduxAction,
-  _payload: any,
-  _type: LogLevelType
-) {
-  return level
-}
 
 function defaultTitleFormatter(options: LoggerOption) {
   const { timestamp, duration } = options

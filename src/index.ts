@@ -1,108 +1,68 @@
 import printBuffer from './core'
 import { timer } from './helpers'
-import defaults from './defaults'
-import { LogEntry, LoggerOption, ReduxAction, ReduxError, ReduxState } from './types'
+import defaults, { getDefaultOptions } from './defaults'
+import { LogEntry, LoggerOption, ReduxError } from './types'
 import { time } from 'console'
 import { isSome, some, none, Option, isNone } from 'fp-ts/lib/Option'
 import { Either, left, right } from 'fp-ts/lib/Either'
-import { state } from 'fp-ts/lib/State'
+import { MiddlewareFunction, reduxMiddlewareFactory } from 'redux-middleware-factory'
+import { Action, AnyAction, Dispatch, MiddlewareAPI } from '@reduxjs/toolkit'
+import { diff } from 'deep-diff'
 
-const executeAction: (
-  a: LoggerOption,
-  next: any,
-  action: ReduxAction
-) => // Factorize out  this product type?
-{ result: ReduxState; error: Option<ReduxError> } = (option, next, action) => {
-  let result
-  let error = none
+type ExecuteActionResult<BA, NA> = {
+  result: BA | NA
+  error: Option<any>
+}
+
+const executeAction: <S, BA, NA>(
+  a: LoggerOption<S>,
+  next: (a: BA) => NA,
+  action: BA
+) => ExecuteActionResult<BA, NA> = <S, BA, NA>(
+  option: LoggerOption<S>,
+  next: (a: BA) => NA,
+  action: BA
+) => {
   if (option.logErrors) {
+    /// TODO :: Is this a right way to handle throwing actions?
     try {
-      result = next(action)
-    } catch (e) {
-      error = option.errorTransformer(e)
-    }
-    return {
-      result: result,
-      error: some(error)
+      return {
+        result: next(action),
+        error: none
+      }
+    } catch (error) {
+      return {
+        result: action,
+        error: some(error)
+      }
     }
   } else {
-    result = next(action)
     return {
-      result: result,
+      result: next(action),
       error: none
     }
   }
 }
 
-const createLogger: (
-  options: LoggerOption
-) =>
-  | (() => (next: (action: ReduxAction) => ReduxAction) => (action: ReduxAction) => ReduxAction)
-  | (({
-      getState
-    }: {
-      getState: () => ReduxState
-    }) => (
-      next: (action: ReduxAction) => ReduxAction
-    ) => (action: ReduxAction) => ReduxAction) = options => {
-  const loggerOptions: LoggerOption = Object.assign({}, defaults, options)
-
-  const {
-    logger,
-    stateTransformer,
-    errorTransformer,
-    predicate,
-    logErrors,
-    diffPredicate
-  } = loggerOptions
-
-  // Return if 'console' object is not defined
-  if (isNone(logger)) {
-    console.log('what')
-    return () => (next: (arg0: any) => any) => (action: any) => next(action)
-  }
-
-  // Detect if 'createLogger' was passed directly to 'applyMiddleware'.
-  // if (options.getState && options.dispatch) {
-  //   return () => (next: (arg0: any) => any) => (action: any) => next(action)
-  // }
-
-  const logBuffer: LogEntry[] = []
-
-  return ({ getState }: any) => (next: (arg0: any) => any) => (action: ReduxAction) => {
-    // Exit early if predicate function returns 'false'
-    if (isSome(predicate) && !predicate.value(getState, action)) {
-      return next(action)
+const createLogger: <S>(options: LoggerOption<S>) => MiddlewareFunction<S> = <S>(
+  options: LoggerOption<S>
+) => {
+  return reduxMiddlewareFactory(
+    <S, D extends Dispatch<AnyAction>>(store: MiddlewareAPI<D, S>, next: D, action: AnyAction) => {
+      /// NOTE :: The actual loggig logic :)
+      console.log(`executing action ${JSON.stringify(action)}`)
+      const beforeState = store.getState()
+      console.log(`before state:${JSON.stringify(beforeState)}`)
+      const result = executeAction(options, next, action)
+      const afterState = store.getState()
+      console.log(`after state:${JSON.stringify(afterState)}`)
+      console.log(`result:${JSON.stringify(result)}`)
+      console.log(`diff:${JSON.stringify(diff(beforeState, afterState))}`)
+      return result.result
     }
+  )
+}
 
-    const started = timer.now()
-    const startedTime = new Date()
-    const prevState = stateTransformer(getState())
-    const took = timer.now() - started
-    const nextState = stateTransformer(getState())
-    const returnedValue = executeAction(loggerOptions, next, action)
-
-    const diff =
-      loggerOptions.diff && isSome(diffPredicate)
-        ? diffPredicate.value(getState, action)
-        : loggerOptions.diff
-
-    const logEntry: LogEntry = {
-      started: started,
-      startedTime: startedTime,
-      prevState: prevState,
-      action: action,
-      took: took,
-      nextState: nextState,
-      error: returnedValue.error
-    }
-
-    logBuffer.push(logEntry)
-
-    printBuffer(logBuffer, Object.assign({}, loggerOptions, { diff }))
-    logBuffer.length = 0
-
-    if (logEntry.error) throw logEntry.error
-    return returnedValue
-  }
+export const defaultLogger = <S>(store: MiddlewareAPI<Dispatch<AnyAction>, S>) => {
+  return createLogger(getDefaultOptions<S>())(store)
 }

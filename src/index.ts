@@ -1,28 +1,20 @@
-import printBuffer from './core'
 import { timer } from './helpers'
-import defaults, { getDefaultOptions } from './defaults'
-import { LogEntry, LoggerOption, ReduxError } from './types'
-import { time } from 'console'
-import { isSome, some, none, Option, isNone } from 'fp-ts/lib/Option'
-import { Either, left, right } from 'fp-ts/lib/Either'
+import { getDefaultOptions } from './defaults'
+import { LogEntry, LoggerOption, LogSwapchain, ExecuteActionResult } from './types'
+import { some, none, Option } from 'fp-ts/lib/Option'
 import { MiddlewareFunction, reduxMiddlewareFactory } from 'redux-middleware-factory'
-import { Action, AnyAction, Dispatch, MiddlewareAPI } from '@reduxjs/toolkit'
-import { diff } from 'deep-diff'
+import { AnyAction, Dispatch, MiddlewareAPI } from '@reduxjs/toolkit'
+// import { diff } from 'deep-diff'
 import { renderDiff } from './diff'
 
-type ExecuteActionResult<BA, NA> = {
-  result: BA | NA
-  error: Option<any>
-}
-
-const executeAction: <S, BA, NA>(
-  a: LoggerOption<S>,
-  next: (a: BA) => NA,
-  action: BA
-) => ExecuteActionResult<BA, NA> = <S, BA, NA>(
-  option: LoggerOption<S>,
-  next: (a: BA) => NA,
-  action: BA
+const executeAction: <S>(
+  next: (a: AnyAction) => AnyAction,
+  action: AnyAction,
+  a: LoggerOption<S>
+) => ExecuteActionResult = <S>(
+  next: (a: AnyAction) => AnyAction,
+  action: AnyAction,
+  option: LoggerOption<S>
 ) => {
   if (option.logErrors) {
     /// TODO :: Is this a right way to handle throwing actions?
@@ -45,24 +37,49 @@ const executeAction: <S, BA, NA>(
   }
 }
 
-const createLogger: <S>(options: LoggerOption<S>) => MiddlewareFunction<S> = <S>(
+// NOTE: This is a terrible hack.
+//       There should be a more functional way of doing this but I am not sure if it can be transparent to the user.
+//       We are just a middleware.
+let swapchain: LogSwapchain = {
+  before: none,
+  after: none
+}
+
+export const createLogger: <S>(options: LoggerOption<S>) => MiddlewareFunction<S> = <S>(
   options: LoggerOption<S>
 ) => {
   return reduxMiddlewareFactory(
     <S, D extends Dispatch<AnyAction>>(store: MiddlewareAPI<D, S>, next: D, action: AnyAction) => {
-      /// NOTE :: The actual loggig logic :)
-      console.log(`executing action ${JSON.stringify(action)}`)
+      // Before log
+      const beforeTime = timer.now()
       const beforeState = store.getState()
-      console.log(`before state:${JSON.stringify(beforeState)}`)
-      const result = executeAction(options, next, action)
+      // TODO :: What does this error even mean?
+      // const transformedBeforeState = options.stateTransformer(beforeState)
+      const result = executeAction(next, action, options)
+
+      // After log
       const afterState = store.getState()
-      console.log(`after state:${JSON.stringify(afterState)}`)
-      console.log(`result:${JSON.stringify(result)}`)
-      diff(beforeState, afterState)?.forEach(diff => {
-        if (diff) {
-          console.log(`diff:${JSON.stringify(renderDiff(diff))}`)
-        }
-      })
+      const afterTime = timer.now()
+
+      // Process difference
+      // diff(beforeState, afterState)?.forEach(diff =>
+      //  console.log(`diff:${JSON.stringify(renderDiff(diff))}`)
+      // )
+      const tookTime = beforeTime - afterTime
+      console.log(`beforeTime:${beforeTime} afterTime:${afterTime} tookTime:${tookTime}`)
+
+      // Create log
+      const logEntry: LogEntry<S> = {
+        action: action,
+        error: result.error,
+        startedTime: new Date(),
+        took: tookTime,
+        prevState: beforeState,
+        nextState: afterState
+      }
+      // Print log
+      // TODO :: Same problem as above.
+      // printLog(logEntry, options)
       return result.result
     }
   )

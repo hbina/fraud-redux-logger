@@ -1,7 +1,7 @@
 import { LogTime } from './types'
 
-export const repeat: <T>(a: T, b: number) => string = <T>(str: T, times: number) =>
-  new Array(times + 1).join(`${JSON.stringify(str)}`)
+export const repeat: (a: string, b: number) => string = (str: string, times: number) =>
+  new Array(times + 1).join(`${str}`)
 
 export const pad: (a: number, b: number) => string = (num: number, maxLength: number) =>
   repeat('0', maxLength - num.toString().length) + num
@@ -13,9 +13,4 @@ export const formatTime: (a: Date) => string = (time: Date) =>
   )}`
 
 // Use performance API if it's available in order to get better precision
-export const timer: LogTime =
-  typeof performance !== 'undefined' &&
-  performance !== null &&
-  typeof performance.now === 'function'
-    ? performance
-    : Date
+export const timer: LogTime = performance

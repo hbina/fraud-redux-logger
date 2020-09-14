@@ -1,17 +1,13 @@
 import { formatTime } from './helpers'
-import { LoggerOption, LogLevelType, ReduxState, ReduxAction, LogTime, LogEntry } from './types'
+import { LoggerOption, LogEntry } from './types'
 import { isSome } from 'fp-ts/lib/Option'
+import { AnyAction } from '@reduxjs/toolkit'
 
-type ObjectWithLogLevel = {
-  type: LogLevelType
-}
-type LevelFunction = (a: ReduxState) => string | LevelFunction | ObjectWithLogLevel
-
-function defaultTitleFormatter(options: LoggerOption) {
+function defaultTitleFormatter<S>(options: LoggerOption<S>) {
   const { timestamp, duration } = options
 
-  return (action: ReduxAction, time: string, took: number) => {
-    const parts = ['action']
+  return (action: AnyAction, time: string, took: number) => {
+    let parts = ['action']
 
     parts.push(`%c${String(action.type)}`)
     if (timestamp) parts.push(`%c@ ${time}`)
@@ -21,39 +17,25 @@ function defaultTitleFormatter(options: LoggerOption) {
   }
 }
 
-function printBuffer(logEntries: LogEntry[], options: LoggerOption) {
+function printLog<S>(logEntry: LogEntry<S>, options: LoggerOption<S>) {
   const { logger, actionTransformer, collapsed, colors, level, diff } = options
   const titleFormatter = defaultTitleFormatter(options)
+  const { startedTime, action, prevState, error, took } = logEntry
 
-  const isUsingDefaultFormatter = typeof titleFormatter === 'undefined'
+  // CSS Formatting
+  const formattedAction = actionTransformer(action)
+  const formattedTime = formatTime(startedTime)
+  const titleCSS = colors.title ? `color: ${colors.title()};` : ''
+  const headerCSS = ['color: gray; font-weight: lighter;']
+  headerCSS.push(titleCSS)
+  if (options.timestamp) headerCSS.push('color: gray; font-weight: lighter;')
+  if (options.duration) headerCSS.push('color: gray; font-weight: lighter;')
+  const title = titleFormatter(formattedAction, formattedTime, took)
 
-  logEntries.forEach((logEntry, key) => {
-    const { started, startedTime, action, prevState, error } = logEntry
-    let { took, nextState } = logEntry
-    const nextEntry = logEntries[key + 1]
-
-    if (nextEntry) {
-      nextState = nextEntry.prevState
-      took = nextEntry.started - started
-    }
-
-    // Message
-    const formattedAction = actionTransformer(action)
-    const isCollapsed = isSome(collapsed)
-      ? collapsed.value(() => nextState, action, logEntry)
-      : false
-
-    const formattedTime = formatTime(startedTime)
-    const titleCSS = colors.title ? `color: ${colors.title()};` : ''
-    const headerCSS = ['color: gray; font-weight: lighter;']
-    headerCSS.push(titleCSS)
-    if (options.timestamp) headerCSS.push('color: gray; font-weight: lighter;')
-    if (options.duration) headerCSS.push('color: gray; font-weight: lighter;')
-    const title = titleFormatter(formattedAction, formattedTime, took)
-
-    if (isSome(logger)) {
-    }
-  })
+  // Begin printing
+  if (isSome(logger)) {
+    logger.value.log('hello world')
+  }
 }
 
-export default printBuffer
+export default printLog

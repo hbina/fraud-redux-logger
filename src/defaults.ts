@@ -25,5 +25,3 @@ export const getDefaultOptions: <S>() => LoggerOption<S> = <S>() => {
     diffPredicate: none
   }
 }
-
-export default getDefaultOptions

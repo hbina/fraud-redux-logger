@@ -1,6 +1,5 @@
-import thunkMiddleware from 'redux-thunk'
-import { applyMiddleware, createStore, Reducer } from '@reduxjs/toolkit'
-import { defaultLogger } from '../src'
+import { applyMiddleware, createStore } from '@reduxjs/toolkit'
+import { defaultLogger } from '../src/fraud-redux-logger'
 
 enum ActionType {
   PLUS_ONE = 'SET_ONE',

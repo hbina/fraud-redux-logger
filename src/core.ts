@@ -3,7 +3,7 @@ import { LoggerOption, LogEntry } from './types'
 import { isSome } from 'fp-ts/lib/Option'
 import { AnyAction } from '@reduxjs/toolkit'
 
-function defaultTitleFormatter<S>(options: LoggerOption<S>) {
+export const defaultTitleFormatter = <S>(options: LoggerOption<S>) => {
   const { timestamp, duration } = options
 
   return (action: AnyAction, time: string, took: number) => {
@@ -17,7 +17,7 @@ function defaultTitleFormatter<S>(options: LoggerOption<S>) {
   }
 }
 
-function printLog<S>(logEntry: LogEntry<S>, options: LoggerOption<S>) {
+export const printLog = <S>(logEntry: LogEntry<S>, options: LoggerOption<S>) => {
   const { logger, actionTransformer, collapsed, colors, level, diff } = options
   const titleFormatter = defaultTitleFormatter(options)
   const { startedTime, action, prevState, error, took } = logEntry
@@ -37,5 +37,3 @@ function printLog<S>(logEntry: LogEntry<S>, options: LoggerOption<S>) {
     logger.value.log('hello world')
   }
 }
-
-export default printLog

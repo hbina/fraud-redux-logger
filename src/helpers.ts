@@ -13,4 +13,9 @@ export const formatTime: (a: Date) => string = (time: Date) =>
   )}`
 
 // Use performance API if it's available in order to get better precision
-export const timer: LogTime = performance
+export const timer: LogTime =
+  typeof performance !== 'undefined' &&
+  performance !== null &&
+  typeof performance.now === 'function'
+    ? performance
+    : Date

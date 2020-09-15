@@ -21,67 +21,64 @@ const dictionary = {
   }
 }
 
-export function style(kind: DiffKind) {
+export const style: (a: DiffKind) => string = (kind: DiffKind) => {
   return `color: ${dictionary[kind].color}; font-weight: bold`
 }
 
-/// TODO :: The original implementation assumes that `path` always exist,
-///         maybe  we should provide a Proxy type with that guarantee.
-export function renderDiff<S>(diff: Diff<S, S>) {
+export const renderDiff: <S>(a: Diff<S, S>) => string[] = <S>(diff: Diff<S, S>) => {
   switch (diff.kind) {
     case 'E': {
       const { path, lhs, rhs } = diff
-      return path ? [path.join('.'), lhs, '→', rhs] : []
+      return (path ? [path.join('.'), lhs, '→', rhs] : []).map(s => String(s))
     }
     case 'N': {
       const { path, rhs } = diff
-      return path ? [path.join('.'), rhs] : []
+      return (path ? [path.join('.'), rhs] : []).map(s => String(s))
     }
     case 'D': {
       const { path } = diff
-      return path ? [path.join('.')] : []
+      return (path ? [path.join('.')] : []).map(s => String(s))
     }
     case 'A': {
       const { path, index, item } = diff
-      return path ? [`${path.join('.')}[${index}]`, item] : []
+      return (path ? [`${path.join('.')}[${index}]`, item] : []).map(s => String(s))
     }
     default:
       return []
   }
 }
 
-export default function diffLogger<S>(
+/// TODO :: This should maybe return a string
+export const diffLogger: <S>(a: S, b: S, c: boolean) => void = <S>(
   prevState: S,
   newState: S,
-  logger: Console,
   isCollapsed: boolean
-) {
+) => {
   const stateDiff = diff(prevState, newState)
 
   try {
     if (isCollapsed) {
-      logger.groupCollapsed('diff')
+      console.groupCollapsed('diff')
     } else {
-      logger.group('diff')
+      console.group('diff')
     }
   } catch (e) {
-    logger.log('diff')
+    console.log('diff')
   }
 
   if (stateDiff) {
     stateDiff.forEach(elem => {
       const { kind } = elem
       const output = renderDiff(elem)
-
-      logger.log(`%c ${dictionary[kind].text}`, style(kind), ...output)
+      console.log(`%c ${dictionary[kind].text}`, style(kind), ...output)
     })
   } else {
-    logger.log('—— no diff ——')
+    console.log('—— no diff ——')
   }
 
   try {
-    logger.groupEnd()
+    console.groupEnd()
   } catch (e) {
-    logger.log('—— diff end —— ')
+    console.log('—— diff end —— ')
   }
 }

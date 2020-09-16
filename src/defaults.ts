@@ -1,14 +1,13 @@
 import { AnyAction } from '@reduxjs/toolkit'
-import { none, some } from 'fp-ts/lib/Option'
-import { LoggerOption } from './types'
+import { LogEntry, LoggerOption } from './types'
 
 export const getDefaultOptions: <S>() => LoggerOption<S> = <S>() => {
   return {
-    level: 'info',
-    logger: some(console),
+    level: 'log',
+    logger: console,
     logErrors: true,
-    collapsed: none,
-    predicate: none,
+    collapsed: (_a: S, _b: AnyAction, _c: LogEntry<S>) => false,
+    predicate: (a: S, b: AnyAction) => true,
     duration: false,
     timestamp: true,
     stateTransformer: (state: S) => state,
@@ -21,7 +20,6 @@ export const getDefaultOptions: <S>() => LoggerOption<S> = <S>() => {
       nextState: () => '#4CAF50',
       error: () => '#F20404'
     },
-    diff: false,
-    diffPredicate: none
+    diffPredicate: (_a: S, _b: AnyAction) => false
   }
 }

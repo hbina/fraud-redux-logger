@@ -1,23 +1,22 @@
-import { timer } from './helpers'
-import { getDefaultOptions } from './defaults'
-import { LogEntry, LoggerOption, LogSwapchain, ExecuteActionResult } from './types'
-import { some, none, Option } from 'fp-ts/lib/Option'
+import { some, none, isSome } from 'fp-ts/lib/Option'
 import { MiddlewareFunction, reduxMiddlewareFactory } from 'redux-middleware-factory'
 import { AnyAction, Dispatch, MiddlewareAPI } from '@reduxjs/toolkit'
-// import { diff } from 'deep-diff'
-import { renderDiff } from './diff'
+
+import { LogEntry, LoggerOption, LogSwapchain, ExecuteActionResult } from './types'
+import { timer } from './helpers'
+import { getDefaultOptions } from './defaults'
 import { printLog } from './core'
 
-const executeAction: <S>(
+const executeAction: (
   a: (b: AnyAction) => AnyAction,
   c: AnyAction,
-  d: LoggerOption<S>
-) => ExecuteActionResult = <S>(
+  d: boolean
+) => ExecuteActionResult = (
   next: (a: AnyAction) => AnyAction,
   action: AnyAction,
-  option: LoggerOption<S>
+  shouldLogError: boolean
 ) => {
-  if (option.logErrors) {
+  if (shouldLogError) {
     /// TODO :: Is this a right way to handle throwing actions?
     try {
       return {
@@ -38,50 +37,61 @@ const executeAction: <S>(
   }
 }
 
-// NOTE: This is a terrible hack.
-//       There should be a more functional way of doing this but I am not sure if it can be transparent to the user.
-//       We are just a middleware.
-let swapchain: LogSwapchain = {
-  before: none,
-  after: none
-}
-
 export const createLogger: <S>(a: LoggerOption<S>) => MiddlewareFunction<S> = <S>(
   options: LoggerOption<S>
 ) => {
-  return reduxMiddlewareFactory(
-    <S, D extends Dispatch<AnyAction>>(store: MiddlewareAPI<D, S>, next: D, action: AnyAction) => {
+  return reduxMiddlewareFactory<S>(
+    (
+      store: MiddlewareAPI<Dispatch<AnyAction>, S>,
+      next: Dispatch<AnyAction>,
+      action: AnyAction
+    ) => {
+      // Log current time
+      const startedTime = new Date()
+
       // Before log
-      const beforeTime = timer.now()
-      const beforeState = store.getState()
-      // TODO :: What does this error even mean?
-      // const transformedBeforeState = options.stateTransformer(beforeState)
-      const result = executeAction(next, action, options)
+      const prevTime = timer.now()
+      const prevState = store.getState()
+      const transformedPrevState = options.stateTransformer(prevState)
+
+      // Execute action
+      const result = executeAction(next, action, options.logErrors)
 
       // After log
-      const afterState = store.getState()
-      const afterTime = timer.now()
+      const nextTime = timer.now()
+      const nextState = store.getState()
+      const transformedNextState = options.stateTransformer(nextState)
 
       // Process difference
       // diff(beforeState, afterState)?.forEach(diff =>
       //  console.log(`diff:${JSON.stringify(renderDiff(diff))}`)
       // )
-      const tookTime = beforeTime - afterTime
-      console.log(`beforeTime:${beforeTime} afterTime:${afterTime} tookTime:${tookTime}`)
+      const tookTime = prevTime - nextTime
+      console.log(`prevTime:${prevTime} nextTime:${nextTime} tookTime:${tookTime}`)
 
       // Create log
-      const logEntry: LogEntry<S> = {
+      const logEntry: Readonly<LogEntry<S>> = {
         action: action,
         error: result.error,
-        startedTime: new Date(),
+        startedTime: startedTime,
         took: tookTime,
-        prevState: beforeState,
-        nextState: afterState
+        prevState: prevState,
+        nextState: nextState
       }
+
+      const shouldLogDiff = options.diffPredicate(nextState, action)
+
       // Print log
       // TODO :: Same problem as above.
-      // printLog(logEntry, options)
-      return result.result
+      printLog(logEntry, options, shouldLogDiff)
+
+      // Emit the error that we captured.
+      // However, I am pretty sure that it does not matter because other people must have thrown it as well.
+      if (isSome(logEntry.error)) {
+        throw logEntry.error.value
+      } else {
+        return result.result
+      }
     }
   )
 }
@@ -91,5 +101,5 @@ export const defaultLogger: <S>(
 ) => (b: Dispatch<AnyAction>) => (c: AnyAction) => AnyAction = <S>(
   store: MiddlewareAPI<Dispatch<AnyAction>, S>
 ) => {
-  return createLogger(getDefaultOptions<S>())(store)
+  return createLogger<S>(getDefaultOptions<S>())(store)
 }

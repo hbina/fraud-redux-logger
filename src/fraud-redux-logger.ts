@@ -63,10 +63,7 @@ export const createLogger: <S>(a: LoggerOption<S>) => MiddlewareFunction<S> = <S
       const transformedNextState = options.stateTransformer(nextState)
 
       // Process difference
-      // diff(beforeState, afterState)?.forEach(diff =>
-      //  console.log(`diff:${JSON.stringify(renderDiff(diff))}`)
-      // )
-      const tookTime = prevTime - nextTime
+      const tookTime = nextTime - prevTime
       console.log(`prevTime:${prevTime} nextTime:${nextTime} tookTime:${tookTime}`)
 
       // Create log
@@ -82,7 +79,6 @@ export const createLogger: <S>(a: LoggerOption<S>) => MiddlewareFunction<S> = <S
       const shouldLogDiff = options.diffPredicate(nextState, action)
 
       // Print log
-      // TODO :: Same problem as above.
       printLog(logEntry, options, shouldLogDiff)
 
       // Emit the error that we captured.

@@ -2,7 +2,6 @@ import { formatTime } from './helpers'
 import { LoggerOption, LogEntry, LogLevel } from './types'
 import { AnyAction } from '@reduxjs/toolkit'
 
-// TODO :: Figure out what the hell this is...
 const getLogLevel: (a: any, b: any, c: any, d: any) => LogLevel = (
   level: any,
   action: any,
@@ -45,15 +44,19 @@ const printBasedOnLogLevel = (
   switch (level) {
     case 'error': {
       console.error(message, style, content)
+      break
     }
     case 'info': {
       console.info(message, style, content)
+      break
     }
     case 'log': {
       console.log(message, style, content)
+      break
     }
     case 'warn': {
       console.warn(message, style, content)
+      break
     }
   }
 }

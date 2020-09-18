@@ -7,9 +7,9 @@ const defaultTitleFormatter = <S>(options: LoggerOption<S>) => {
   const { timestamp, duration } = options
 
   return (action: AnyAction, time: string, took: number) => {
-    let parts = ['action', `%c${String(action.type)}`]
-    if (timestamp) parts.push(`%c@ ${time}`)
-    if (duration) parts.push(`%c(in ${took.toFixed(2)} ms)`)
+    let parts = ['action', `%c ${String(action.type)}`]
+    if (timestamp) parts.push(`%c @ ${time}`)
+    if (duration) parts.push(`%c (in ${took.toFixed(2)} ms)`)
     return parts.join(' ')
   }
 }

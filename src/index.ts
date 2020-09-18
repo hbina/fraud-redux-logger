@@ -58,7 +58,6 @@ export const createLogger = <S>(options: LoggerOption<S>) => {
 
       // Process difference
       const tookTime = nextTime - prevTime
-      console.log(`prevTime:${prevTime} nextTime:${nextTime} tookTime:${tookTime}`)
 
       // Create log
       const logEntry: Readonly<LogEntry<S>> = {

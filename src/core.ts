@@ -51,7 +51,7 @@ export const printLog = <S>(
   const titleFormatter = defaultTitleFormatter(options)
   const { startedTime, action, prevState, nextState, error, took } = logEntry
 
-  const isUsingDefaultFormatter = false
+  const isUsingDefaultFormatter = true
 
   // Message
   const formattedAction = actionTransformer(action)

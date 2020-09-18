@@ -1,6 +1,6 @@
 import { some, none, isSome } from 'fp-ts/lib/Option'
 import { MiddlewareFunction, reduxMiddlewareFactory } from 'redux-middleware-factory'
-import { AnyAction, Dispatch, MiddlewareAPI } from '@reduxjs/toolkit'
+import { Action, AnyAction, Dispatch, MiddlewareAPI } from '@reduxjs/toolkit'
 
 import { LogEntry, LoggerOption, LogSwapchain, ExecuteActionResult } from './types'
 import { timer } from './helpers'
@@ -33,8 +33,8 @@ const executeAction = (
   }
 }
 
-export const createLogger = <S>(options: LoggerOption<S>) => {
-  return reduxMiddlewareFactory<S>(
+export const createLogger = <S, TS, TA, E, TE>(options: LoggerOption<S, TS, TA, E, TE>) => {
+  return reduxMiddlewareFactory(
     (
       store: MiddlewareAPI<Dispatch<AnyAction>, S>,
       next: Dispatch<AnyAction>,
@@ -49,7 +49,7 @@ export const createLogger = <S>(options: LoggerOption<S>) => {
       const transformedPrevState = options.stateTransformer(prevState)
 
       // Execute action
-      const result = executeAction(next, action, options.logErrors)
+      const result = executeAction(next, action, options.showError)
 
       // After log
       const nextTime = timer.now()
@@ -60,13 +60,15 @@ export const createLogger = <S>(options: LoggerOption<S>) => {
       const tookTime = nextTime - prevTime
 
       // Create log
-      const logEntry: LogEntry<S> = {
+      const logEntry = {
         action: action,
         error: result.error,
         startedTime: startedTime,
         took: tookTime,
         prevState: prevState,
         nextState: nextState,
+        transformedPrevState: transformedPrevState,
+        transformedNextState: transformedNextState,
       }
 
       const shouldLogDiff = options.diffPredicate(nextState, action)
@@ -85,6 +87,6 @@ export const createLogger = <S>(options: LoggerOption<S>) => {
   )
 }
 
-export const defaultLogger = <S>(store: MiddlewareAPI<Dispatch<AnyAction>, S>) => {
-  return createLogger<S>(getDefaultOptions<S>())(store)
+export const defaultLogger = <S, E>(store: MiddlewareAPI<Dispatch<AnyAction>, S>) => {
+  return createLogger(getDefaultOptions<S, E>())(store)
 }

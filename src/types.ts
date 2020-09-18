@@ -11,32 +11,34 @@ export enum LogLevel {
   INFO = 'INFO',
 }
 
-export type LogEntry<S> = {
+export type LogEntry<S, E, TS> = {
   readonly action: AnyAction
-  readonly error: Option<any>
+  readonly error: Option<E>
   readonly startedTime: Date
   readonly took: number
   readonly prevState: S
   readonly nextState: S
+  readonly transformedPrevState: TS
+  readonly transformedNextState: TS
 }
 
-export type LoggerOption<S, TS = any, A = any, TA = any, E = any, TE = any> = {
+export type LoggerOption<S, E, TS, TA, TE> = {
   // User console
   readonly logger: Console
   // Switches
-  readonly logErrors: boolean
-  readonly duration: boolean
-  readonly timestamp: boolean
+  readonly showError: boolean
+  readonly showDuration: boolean
+  readonly showTimestamp: boolean
   // Transformers
   readonly stateTransformer: Transform<S, TS>
-  readonly actionTransformer: Transform<A, TA>
+  readonly actionTransformer: Transform<AnyAction, TA>
   readonly errorTransformer: Transform<E, TE>
   // Predicates
-  readonly collapsed: (a: S, b: A, c: LogEntry<S>) => boolean
-  readonly predicate: (a: S, b: A) => boolean
-  readonly diffPredicate: (a: S, b: A) => boolean
+  readonly collapsed: (a: S, b: AnyAction, c: LogEntry<S, E, TS>) => boolean
+  readonly predicate: (a: S, b: AnyAction) => boolean
+  readonly diffPredicate: (a: S, b: AnyAction) => boolean
   // Customization
-  readonly colors: LogColor<S>
+  readonly colors: LogColor<S, E>
   // Log levels
   readonly logLevel: {
     readonly prevState: (a: TA, b: S) => LogLevel
@@ -46,12 +48,12 @@ export type LoggerOption<S, TS = any, A = any, TA = any, E = any, TE = any> = {
   }
 }
 
-export type LogColor<S> = {
+export type LogColor<S, E> = {
   readonly title: (a: AnyAction) => string
   readonly prevState: (a: S) => string
   readonly action: (a: AnyAction) => string
   readonly nextState: (a: S) => string
-  readonly error: (a: any, b: S) => string
+  readonly error: (a: E, b: S) => string
 }
 
 export enum LogLevelType {

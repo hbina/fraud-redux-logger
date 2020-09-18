@@ -4,13 +4,13 @@ import { AnyAction } from '@reduxjs/toolkit'
 import { diffLogger } from './diff'
 import { isSome } from 'fp-ts/lib/Option'
 
-const defaultTitleFormatter = <S>(options: LoggerOption<S>) => {
-  const { timestamp, duration } = options
+const defaultTitleFormatter = <S, E, TS, TA, TE>(options: LoggerOption<S, E, TS, TA, TE>) => {
+  const { showTimestamp, showDuration } = options
 
   return (action: AnyAction, time: string, took: number) => {
     let parts = ['action', `%c ${String(action.type)}`]
-    if (timestamp) parts.push(`%c @ ${time}`)
-    if (duration) parts.push(`%c (in ${took.toFixed(2)} ms)`)
+    if (showTimestamp) parts.push(`%c @ ${time}`)
+    if (showDuration) parts.push(`%c (in ${took.toFixed(2)} ms)`)
     return parts.join(' ')
   }
 }
@@ -42,49 +42,55 @@ const printBasedOnLogLevel = <T>(
   }
 }
 
-export const printLog = <S>(
-  logEntry: LogEntry<S>,
-  options: LoggerOption<S>,
+export const printLog = <S, E, TS, TA, TE>(
+  logEntry: LogEntry<S, E, TS>,
+  options: LoggerOption<S, E, TS, TA, TE>,
   shouldLogDiff: boolean
 ) => {
   // Extraction
-  const { logger, actionTransformer, collapsed, colors, logLevel } = options
+  const {
+    logger,
+    stateTransformer,
+    actionTransformer,
+    errorTransformer,
+    collapsed,
+    colors,
+    logLevel,
+  } = options
   const titleFormatter = defaultTitleFormatter(options)
   const { startedTime, action, prevState, nextState, error, took } = logEntry
 
-  const isUsingDefaultFormatter = true
+  // Transformations
+  const transformedPrevState = stateTransformer(prevState)
+  const transformedAction = actionTransformer(action)
+  const transformedNextState = stateTransformer(nextState)
 
   // Message
-  const formattedAction = actionTransformer(action)
-  const isCollapsed = options.collapsed(nextState, action, logEntry)
+  const isCollapsed = collapsed(nextState, action, logEntry)
 
   // CSS Formatting
   const formattedTime = formatTime(startedTime)
   const titleCSS = `color: ${colors.title(action)};`
   const headerCSS = ['color: gray; font-weight: lighter;', titleCSS]
-  if (options.timestamp) headerCSS.push('color: gray; font-weight: lighter;')
-  if (options.duration) headerCSS.push('color: gray; font-weight: lighter;')
-  const title = titleFormatter(formattedAction, formattedTime, took)
+  if (options.showTimestamp) headerCSS.push('color: gray; font-weight: lighter;')
+  if (options.showDuration) headerCSS.push('color: gray; font-weight: lighter;')
+  const title = titleFormatter(action, formattedTime, took)
 
   // Render
   try {
     if (isCollapsed) {
-      if (isUsingDefaultFormatter) {
-        logger.groupCollapsed(`%c ${title}`, ...headerCSS)
-      } else logger.groupCollapsed(title)
-    } else if (isUsingDefaultFormatter) {
-      logger.group(`%c ${title}`, ...headerCSS)
+      logger.groupCollapsed(title)
     } else {
-      logger.group(title)
+      logger.group(`%c ${title}`, ...headerCSS)
     }
   } catch (e) {
+    logger.error(e)
     logger.log(title)
   }
 
-  const prevStateLevel = logLevel.prevState(formattedAction, prevState)
-  const actionLevel = logLevel.action(formattedAction)
-  const errorLevel = logLevel.error(formattedAction, error, prevState)
-  const nextStateLevel = logLevel.nextState(formattedAction, nextState)
+  const prevStateLevel = logLevel.prevState(transformedAction, prevState)
+  const actionLevel = logLevel.action(transformedAction)
+  const nextStateLevel = logLevel.nextState(transformedAction, nextState)
 
   {
     const styles = `color: ${colors.prevState(prevState)}; font-weight: bold`
@@ -92,14 +98,17 @@ export const printLog = <S>(
   }
 
   {
-    const styles = `color: ${colors.action(formattedAction)}; font-weight: bold`
-    printBasedOnLogLevel(logger, actionLevel, '%c action    ', styles, formattedAction)
+    const styles = `color: ${colors.action(action)}; font-weight: bold`
+    printBasedOnLogLevel(logger, actionLevel, '%c action    ', styles, transformedAction)
   }
 
   {
     if (isSome(error)) {
-      const styles = `color: ${colors.error(error, prevState)}; font-weight: bold;`
-      printBasedOnLogLevel(logger, errorLevel, '%c error     ', styles, error.value)
+      const err = error.value
+      const transformedError = errorTransformer(err)
+      const errorLevel = logLevel.error(transformedAction, err, prevState)
+      const styles = `color: ${colors.error(err, prevState)}; font-weight: bold;`
+      printBasedOnLogLevel(logger, errorLevel, '%c error     ', styles, transformedError)
     }
   }
 

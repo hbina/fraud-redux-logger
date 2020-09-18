@@ -61,10 +61,9 @@ type TransformedError = {
 
 const customOptions: LoggerOption<
   TestState,
-  TransformedState,
-  TestAction,
-  TransformedAction,
   TestError,
+  TransformedState,
+  TransformedAction,
   TransformedError
 > = {
   logLevel: {
@@ -98,11 +97,12 @@ const customOptions: LoggerOption<
     nextState: (a: TransformedAction, b: TestState) => LogLevel.LOG,
   },
   logger: console,
-  logErrors: true,
-  collapsed: (a: TestState, b: TestAction, c: LogEntry<TestState>) => false,
+  showError: true,
+  collapsed: (a: TestState, b: TestAction, c: LogEntry<TestState, TestError, TransformedState>) =>
+    false,
   predicate: (a: TestState, b: TestAction) => true,
-  duration: false,
-  timestamp: true,
+  showDuration: false,
+  showTimestamp: true,
   stateTransformer: (state: TestState) => {
     return {
       state: state,

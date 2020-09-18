@@ -12,6 +12,7 @@
   "license": "MIT",
   "scripts": {
     "build": "tsc",
+    "lint": "tslint --project .",
     "prepare": "yarn test && yarn build",
     "test": "jest --coverage"
   },

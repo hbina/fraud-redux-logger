@@ -1,30 +1,21 @@
 import { formatTime } from './helpers'
 import { LoggerOption, LogEntry, LogLevel, LogLevelType } from './types'
 import { AnyAction } from '@reduxjs/toolkit'
-
-const getLogLevel = (
-  level: (b: AnyAction, payload: any, type: LogLevelType) => LogLevel,
-  action: AnyAction,
-  payload: any,
-  type: LogLevelType
-) => level(action, payload, type)
+import { diffLogger } from './diff'
 
 const defaultTitleFormatter = <S>(options: LoggerOption<S>) => {
   const { timestamp, duration } = options
 
   return (action: AnyAction, time: string, took: number) => {
-    let parts = ['action']
-
-    parts.push(`%c${String(action.type)}`)
+    let parts = ['action', `%c${String(action.type)}`]
     if (timestamp) parts.push(`%c@ ${time}`)
     if (duration) parts.push(`%c(in ${took.toFixed(2)} ms)`)
-
     return parts.join(' ')
   }
 }
 
 const printBasedOnLogLevel = (
-  console: Console,
+  logger: Console,
   level: LogLevel,
   message: string,
   style: string,
@@ -32,19 +23,19 @@ const printBasedOnLogLevel = (
 ) => {
   switch (level) {
     case LogLevel.ERROR: {
-      console.error(message, style, content)
+      logger.error(message, style, content)
       break
     }
     case LogLevel.INFO: {
-      console.info(message, style, content)
+      logger.info(message, style, content)
       break
     }
     case LogLevel.LOG: {
-      console.log(message, style, content)
+      logger.log(message, style, content)
       break
     }
     case LogLevel.WARN: {
-      console.warn(message, style, content)
+      logger.warn(message, style, content)
       break
     }
   }
@@ -112,5 +103,22 @@ export const printLog = <S>(
   {
     const styles = `color: ${colors.nextState(nextState)}; font-weight: bold`
     printBasedOnLogLevel(logger, nextStateLevel, '%c next state', styles, nextState)
+  }
+
+  // NOTE :: No idea where the original redux-logger gets this?
+  // if (logger.withTrace) {
+  //   logger.groupCollapsed('TRACE')
+  //  logger.trace()
+  //  logger.groupEnd()
+  // }
+
+  if (shouldLogDiff) {
+    diffLogger(prevState, nextState, logger, isCollapsed)
+  }
+
+  try {
+    logger.groupEnd()
+  } catch (e) {
+    logger.log('—— log end ——')
   }
 }

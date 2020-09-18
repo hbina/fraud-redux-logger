@@ -49,36 +49,32 @@ export const renderDiff: <S>(a: Diff<S, S>) => string[] = <S>(diff: Diff<S, S>) 
 }
 
 /// TODO :: This should maybe return a string
-export const diffLogger: <S>(a: S, b: S, c: boolean) => void = <S>(
-  prevState: S,
-  newState: S,
-  isCollapsed: boolean
-) => {
+export const diffLogger = <S>(prevState: S, newState: S, logger: Console, isCollapsed: boolean) => {
   const stateDiff = diff(prevState, newState)
 
   try {
     if (isCollapsed) {
-      console.groupCollapsed('diff')
+      logger.groupCollapsed('diff')
     } else {
-      console.group('diff')
+      logger.group('diff')
     }
   } catch (e) {
-    console.log('diff')
+    logger.log('diff')
   }
 
   if (stateDiff) {
     stateDiff.forEach((elem) => {
       const { kind } = elem
       const output = renderDiff(elem)
-      console.log(`%c ${dictionary[kind].text}`, style(kind), ...output)
+      logger.log(`%c ${dictionary[kind].text}`, style(kind), ...output)
     })
   } else {
-    console.log('—— no diff ——')
+    logger.log('—— no diff ——')
   }
 
   try {
-    console.groupEnd()
+    logger.groupEnd()
   } catch (e) {
-    console.log('—— diff end —— ')
+    logger.log('—— diff end —— ')
   }
 }

@@ -72,7 +72,6 @@ const customOptions: LoggerOption<
       if (b.actionBefore.includes(a.type)) {
         return LogLevel.LOG
       } else {
-        console.log('this is the first time this action has been executed!')
         return LogLevel.WARN
       }
     },
@@ -80,19 +79,15 @@ const customOptions: LoggerOption<
       switch (a.type) {
         case ActionType.PLUS_ONE: {
           return LogLevel.ERROR
-          break
         }
         case ActionType.PLUS_TWO: {
           return LogLevel.INFO
-          break
         }
         case ActionType.PLUS_THREE: {
           return LogLevel.LOG
-          break
         }
         case ActionType.SET_THROW: {
           return LogLevel.WARN
-          break
         }
         default: {
           return LogLevel.LOG

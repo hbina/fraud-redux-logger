@@ -42,7 +42,7 @@ export enum LogLevelType {
   PREV_STATE = 'PREV_STATE',
   NEXT_STATE = 'NEXT_STATE',
   ACTION = 'ACTION',
-  ERROR = 'ERROR'
+  ERROR = 'ERROR',
 }
 
 export type DiffKind = 'N' | 'D' | 'E' | 'A'

@@ -18,8 +18,8 @@ export const getDefaultOptions: <S>() => LoggerOption<S> = <S>() => {
       prevState: () => '#9E9E9E',
       action: () => '#03A9F4',
       nextState: () => '#4CAF50',
-      error: () => '#F20404'
+      error: () => '#F20404',
     },
-    diffPredicate: (_a: S, _b: AnyAction) => false
+    diffPredicate: (_a: S, _b: AnyAction) => false,
   }
 }

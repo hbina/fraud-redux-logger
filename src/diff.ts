@@ -5,20 +5,20 @@ import { DiffKind } from './types'
 const dictionary = {
   E: {
     color: '#2196F3',
-    text: 'CHANGED:'
+    text: 'CHANGED:',
   },
   N: {
     color: '#4CAF50',
-    text: 'ADDED:'
+    text: 'ADDED:',
   },
   D: {
     color: '#F44336',
-    text: 'DELETED:'
+    text: 'DELETED:',
   },
   A: {
     color: '#2196F3',
-    text: 'ARRAY:'
-  }
+    text: 'ARRAY:',
+  },
 }
 
 export const style: (a: DiffKind) => string = (kind: DiffKind) => {
@@ -29,19 +29,19 @@ export const renderDiff: <S>(a: Diff<S, S>) => string[] = <S>(diff: Diff<S, S>) 
   switch (diff.kind) {
     case 'E': {
       const { path, lhs, rhs } = diff
-      return (path ? [path.join('.'), lhs, '→', rhs] : []).map(s => String(s))
+      return (path ? [path.join('.'), lhs, '→', rhs] : []).map((s) => String(s))
     }
     case 'N': {
       const { path, rhs } = diff
-      return (path ? [path.join('.'), rhs] : []).map(s => String(s))
+      return (path ? [path.join('.'), rhs] : []).map((s) => String(s))
     }
     case 'D': {
       const { path } = diff
-      return (path ? [path.join('.')] : []).map(s => String(s))
+      return (path ? [path.join('.')] : []).map((s) => String(s))
     }
     case 'A': {
       const { path, index, item } = diff
-      return (path ? [`${path.join('.')}[${index}]`, item] : []).map(s => String(s))
+      return (path ? [`${path.join('.')}[${index}]`, item] : []).map((s) => String(s))
     }
     default:
       return []
@@ -67,7 +67,7 @@ export const diffLogger: <S>(a: S, b: S, c: boolean) => void = <S>(
   }
 
   if (stateDiff) {
-    stateDiff.forEach(elem => {
+    stateDiff.forEach((elem) => {
       const { kind } = elem
       const output = renderDiff(elem)
       console.log(`%c ${dictionary[kind].text}`, style(kind), ...output)

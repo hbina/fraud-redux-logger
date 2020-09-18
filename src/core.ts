@@ -2,6 +2,7 @@ import { formatTime } from './helpers'
 import { LoggerOption, LogEntry, LogLevel, LogLevelType } from './types'
 import { AnyAction } from '@reduxjs/toolkit'
 import { diffLogger } from './diff'
+import { isSome } from 'fp-ts/lib/Option'
 
 const defaultTitleFormatter = <S>(options: LoggerOption<S>) => {
   const { timestamp, duration } = options
@@ -14,12 +15,12 @@ const defaultTitleFormatter = <S>(options: LoggerOption<S>) => {
   }
 }
 
-const printBasedOnLogLevel = (
+const printBasedOnLogLevel = <T>(
   logger: Console,
   level: LogLevel,
   message: string,
   style: string,
-  content: any
+  content: T
 ) => {
   switch (level) {
     case LogLevel.ERROR: {
@@ -96,8 +97,10 @@ export const printLog = <S>(
   }
 
   {
-    const styles = `color: ${colors.error(error, prevState)}; font-weight: bold;`
-    printBasedOnLogLevel(logger, errorLevel, '%c error     ', styles, error)
+    if (isSome(error)) {
+      const styles = `color: ${colors.error(error, prevState)}; font-weight: bold;`
+      printBasedOnLogLevel(logger, errorLevel, '%c error     ', styles, error.value)
+    }
   }
 
   {

@@ -60,7 +60,7 @@ export const createLogger = <S>(options: LoggerOption<S>) => {
       const tookTime = nextTime - prevTime
 
       // Create log
-      const logEntry: Readonly<LogEntry<S>> = {
+      const logEntry: LogEntry<S> = {
         action: action,
         error: result.error,
         startedTime: startedTime,

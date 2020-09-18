@@ -12,46 +12,46 @@ export enum LogLevel {
 }
 
 export type LogEntry<S> = {
-  action: AnyAction
-  error: Option<any>
-  startedTime: Date
-  took: number
-  prevState: S
-  nextState: S
+  readonly action: AnyAction
+  readonly error: Option<any>
+  readonly startedTime: Date
+  readonly took: number
+  readonly prevState: S
+  readonly nextState: S
 }
 
 export type LoggerOption<S, TS = any, A = any, TA = any, E = any, TE = any> = {
   // User console
-  logger: Console
+  readonly logger: Console
   // Switches
-  logErrors: boolean
-  duration: boolean
-  timestamp: boolean
+  readonly logErrors: boolean
+  readonly duration: boolean
+  readonly timestamp: boolean
   // Transformers
-  stateTransformer: Transform<S, TS>
-  actionTransformer: Transform<A, TA>
-  errorTransformer: Transform<E, TE>
+  readonly stateTransformer: Transform<S, TS>
+  readonly actionTransformer: Transform<A, TA>
+  readonly errorTransformer: Transform<E, TE>
   // Predicates
-  collapsed: (a: S, b: A, c: LogEntry<S>) => boolean
-  predicate: (a: S, b: A) => boolean
-  diffPredicate: (a: S, b: A) => boolean
+  readonly collapsed: (a: S, b: A, c: LogEntry<S>) => boolean
+  readonly predicate: (a: S, b: A) => boolean
+  readonly diffPredicate: (a: S, b: A) => boolean
   // Customization
-  colors: LogColor<S>
+  readonly colors: LogColor<S>
   // Log levels
-  logLevel: {
-    prevState: (a: TA, b: S) => LogLevel
-    action: (a: TA) => LogLevel
-    error: (a: TA, b: E, c: S) => LogLevel
-    nextState: (a: TA, b: S) => LogLevel
+  readonly logLevel: {
+    readonly prevState: (a: TA, b: S) => LogLevel
+    readonly action: (a: TA) => LogLevel
+    readonly error: (a: TA, b: E, c: S) => LogLevel
+    readonly nextState: (a: TA, b: S) => LogLevel
   }
 }
 
 export type LogColor<S> = {
-  title: (a: AnyAction) => string
-  prevState: (a: S) => string
-  action: (a: AnyAction) => string
-  nextState: (a: S) => string
-  error: (a: any, b: S) => string
+  readonly title: (a: AnyAction) => string
+  readonly prevState: (a: S) => string
+  readonly action: (a: AnyAction) => string
+  readonly nextState: (a: S) => string
+  readonly error: (a: any, b: S) => string
 }
 
 export enum LogLevelType {
@@ -64,11 +64,11 @@ export enum LogLevelType {
 export type DiffKind = 'N' | 'D' | 'E' | 'A'
 
 export type LogSwapchain = {
-  before: Option<number>
-  after: Option<number>
+  readonly before: Option<number>
+  readonly after: Option<number>
 }
 
 export type ExecuteActionResult = {
-  result: AnyAction
-  error: Option<any>
+  readonly result: AnyAction
+  readonly error: Option<any>
 }

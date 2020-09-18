@@ -12,5 +12,4 @@ export const formatTime: (a: Date) => string = (time: Date) =>
     3
   )}`
 
-// Use performance API if it's available in order to get better precision
 export const timer: LogTime = Date

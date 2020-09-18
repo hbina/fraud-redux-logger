@@ -43,22 +43,23 @@ const printBasedOnLogLevel = <T>(
 }
 
 export const printLog = <S, E, TS, TA, TE>(
-  logEntry: LogEntry<S, E, TS>,
-  options: LoggerOption<S, E, TS, TA, TE>,
-  shouldLogDiff: boolean
+  logEntry: LogEntry<S, E>,
+  options: LoggerOption<S, E, TS, TA, TE>
 ) => {
   // Extraction
   const {
     logger,
+    showError,
     stateTransformer,
     actionTransformer,
     errorTransformer,
-    collapsed,
+    collapsePredicate,
+    diffPredicate,
     colors,
     logLevel,
   } = options
   const titleFormatter = defaultTitleFormatter(options)
-  const { startedTime, action, prevState, nextState, error, took } = logEntry
+  const { action, error, startedTime, took, prevState, nextState } = logEntry
 
   // Transformations
   const transformedPrevState = stateTransformer(prevState)
@@ -66,7 +67,7 @@ export const printLog = <S, E, TS, TA, TE>(
   const transformedNextState = stateTransformer(nextState)
 
   // Message
-  const isCollapsed = collapsed(nextState, action, logEntry)
+  const isCollapsed = collapsePredicate(nextState, action, logEntry)
 
   // CSS Formatting
   const formattedTime = formatTime(startedTime)
@@ -77,6 +78,7 @@ export const printLog = <S, E, TS, TA, TE>(
   const title = titleFormatter(action, formattedTime, took)
 
   // Render
+  // Note :: How does this throws exception?
   try {
     if (isCollapsed) {
       logger.groupCollapsed(title)
@@ -85,7 +87,6 @@ export const printLog = <S, E, TS, TA, TE>(
     }
   } catch (e) {
     logger.error(e)
-    logger.log(title)
   }
 
   const prevStateLevel = logLevel.prevState(transformedAction, prevState)
@@ -94,7 +95,7 @@ export const printLog = <S, E, TS, TA, TE>(
 
   {
     const styles = `color: ${colors.prevState(prevState)}; font-weight: bold`
-    printBasedOnLogLevel(logger, prevStateLevel, '%c prev state', styles, prevState)
+    printBasedOnLogLevel(logger, prevStateLevel, '%c prev state', styles, transformedPrevState)
   }
 
   {
@@ -103,7 +104,7 @@ export const printLog = <S, E, TS, TA, TE>(
   }
 
   {
-    if (isSome(error)) {
+    if (isSome(error) && showError) {
       const err = error.value
       const transformedError = errorTransformer(err)
       const errorLevel = logLevel.error(transformedAction, err, prevState)
@@ -114,7 +115,7 @@ export const printLog = <S, E, TS, TA, TE>(
 
   {
     const styles = `color: ${colors.nextState(nextState)}; font-weight: bold`
-    printBasedOnLogLevel(logger, nextStateLevel, '%c next state', styles, nextState)
+    printBasedOnLogLevel(logger, nextStateLevel, '%c next state', styles, transformedNextState)
   }
 
   // NOTE :: No idea where the original redux-logger gets this?
@@ -124,7 +125,7 @@ export const printLog = <S, E, TS, TA, TE>(
   //  logger.groupEnd()
   // }
 
-  if (shouldLogDiff) {
+  if (diffPredicate(nextState, action)) {
     diffLogger(prevState, nextState, logger, isCollapsed)
   }
 

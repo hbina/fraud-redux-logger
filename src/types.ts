@@ -11,15 +11,13 @@ export enum LogLevel {
   INFO = 'INFO',
 }
 
-export type LogEntry<S, E, TS> = {
+export type LogEntry<S, E> = {
   readonly action: AnyAction
   readonly error: Option<E>
   readonly startedTime: Date
   readonly took: number
   readonly prevState: S
   readonly nextState: S
-  readonly transformedPrevState: TS
-  readonly transformedNextState: TS
 }
 
 export type LoggerOption<S, E, TS, TA, TE> = {
@@ -34,8 +32,8 @@ export type LoggerOption<S, E, TS, TA, TE> = {
   readonly actionTransformer: Transform<AnyAction, TA>
   readonly errorTransformer: Transform<E, TE>
   // Predicates
-  readonly collapsed: (a: S, b: AnyAction, c: LogEntry<S, E, TS>) => boolean
-  readonly predicate: (a: S, b: AnyAction) => boolean
+  readonly collapsePredicate: (a: S, b: AnyAction, c: LogEntry<S, E>) => boolean
+  readonly logPredicate: (a: S, b: AnyAction) => boolean
   readonly diffPredicate: (a: S, b: AnyAction) => boolean
   // Customization
   readonly colors: LogColor<S, E>

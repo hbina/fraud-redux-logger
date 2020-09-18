@@ -40,48 +40,47 @@ export const createLogger = <S, TS, TA, E, TE>(options: LoggerOption<S, TS, TA, 
       next: Dispatch<AnyAction>,
       action: AnyAction
     ) => {
-      // Log current time
-      const startedTime = new Date()
-
-      // Before log
-      const prevTime = timer.now()
-      const prevState = store.getState()
-      const transformedPrevState = options.stateTransformer(prevState)
-
-      // Execute action
-      const result = executeAction(next, action, options.showError)
-
-      // After log
-      const nextTime = timer.now()
-      const nextState = store.getState()
-      const transformedNextState = options.stateTransformer(nextState)
-
-      // Process difference
-      const tookTime = nextTime - prevTime
-
-      // Create log
-      const logEntry = {
-        action: action,
-        error: result.error,
-        startedTime: startedTime,
-        took: tookTime,
-        prevState: prevState,
-        nextState: nextState,
-        transformedPrevState: transformedPrevState,
-        transformedNextState: transformedNextState,
-      }
-
-      const shouldLogDiff = options.diffPredicate(nextState, action)
-
-      // Print log
-      printLog(logEntry, options, shouldLogDiff)
-
-      // Emit the error that we captured.
-      // However, I am pretty sure that it does not matter because other people must have thrown it as well.
-      if (isSome(logEntry.error)) {
-        throw logEntry.error.value
+      const { logPredicate } = options
+      if (!logPredicate(store.getState(), action)) {
+        return next(action)
       } else {
-        return result.result
+        // Log current time
+        const startedTime = new Date()
+
+        // Before log
+        const prevTime = timer.now()
+        const prevState = store.getState()
+
+        // Execute action
+        const result = executeAction(next, action, options.showError)
+
+        // After log
+        const nextTime = timer.now()
+        const nextState = store.getState()
+
+        // Process difference
+        const tookTime = nextTime - prevTime
+
+        // Create log
+        const logEntry = {
+          action: action,
+          error: result.error,
+          startedTime: startedTime,
+          took: tookTime,
+          prevState: prevState,
+          nextState: nextState,
+        }
+
+        // Print log
+        printLog(logEntry, options)
+
+        // Emit the error that we captured.
+        // However, I am pretty sure that it does not matter because other people must have thrown it as well.
+        if (isSome(logEntry.error)) {
+          throw logEntry.error.value
+        } else {
+          return result.result
+        }
       }
     }
   )

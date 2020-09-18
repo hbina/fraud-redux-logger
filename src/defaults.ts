@@ -14,8 +14,8 @@ export const getDefaultOptions = <S, E, TS = S, TA = AnyAction>() => {
     actionTransformer: (action: AnyAction) => action,
     errorTransformer: (error: E) => error,
     // Predicates
-    collapsed: (a: S, b: AnyAction, _c: LogEntry<S, E, TS>) => false,
-    predicate: (a: S, b: AnyAction) => true,
+    collapsePredicate: (a: S, b: AnyAction, _c: LogEntry<S, E>) => false,
+    logPredicate: (a: S, b: AnyAction) => true,
     diffPredicate: (a: S, b: AnyAction) => false,
     // Customization
     colors: {

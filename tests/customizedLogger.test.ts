@@ -1,4 +1,4 @@
-import { AnyAction, applyMiddleware, createStore } from '@reduxjs/toolkit'
+import { applyMiddleware, createStore } from '@reduxjs/toolkit'
 import { createLogger } from '../src'
 import { LogEntry, LoggerOption, LogLevel } from '../src/types'
 
@@ -98,9 +98,9 @@ const customOptions: LoggerOption<
   },
   logger: console,
   showError: true,
-  collapsed: (a: TestState, b: TestAction, c: LogEntry<TestState, TestError, TransformedState>) =>
-    false,
-  predicate: (a: TestState, b: TestAction) => true,
+  diffPredicate: (_a: TestState, _b: TestAction) => false,
+  collapsePredicate: (a: TestState, b: TestAction, c: LogEntry<TestState, TestError>) => false,
+  logPredicate: (a: TestState, b: TestAction) => true,
   showDuration: false,
   showTimestamp: true,
   stateTransformer: (state: TestState) => {
@@ -128,7 +128,6 @@ const customOptions: LoggerOption<
     nextState: () => '#4CAF50',
     error: () => '#F20404',
   },
-  diffPredicate: (_a: TestState, _b: TestAction) => false,
 }
 
 const createOption = describe('Maps an action of certain type to another type of action.', () => {

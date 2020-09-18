@@ -21,7 +21,7 @@ const dictionary = {
   },
 }
 
-export const style: (a: DiffKind) => string = (kind: DiffKind) => {
+export const diffStyle: (a: DiffKind) => string = (kind: DiffKind) => {
   return `color: ${dictionary[kind].color}; font-weight: bold`
 }
 
@@ -66,7 +66,7 @@ export const diffLogger = <S>(prevState: S, newState: S, logger: Console, isColl
     stateDiff.forEach((elem) => {
       const { kind } = elem
       const output = renderDiff(elem)
-      logger.log(`%c ${dictionary[kind].text}`, style(kind), ...output)
+      logger.log(`%c ${dictionary[kind].text}`, diffStyle(kind), ...output)
     })
   } else {
     logger.log('—— no diff ——')

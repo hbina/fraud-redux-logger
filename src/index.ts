@@ -7,11 +7,7 @@ import { timer } from './helpers'
 import { getDefaultOptions } from './defaults'
 import { printLog } from './core'
 
-const executeAction: (
-  a: (b: AnyAction) => AnyAction,
-  c: AnyAction,
-  d: boolean
-) => ExecuteActionResult = (
+const executeAction = (
   next: (a: AnyAction) => AnyAction,
   action: AnyAction,
   shouldLogError: boolean
@@ -37,9 +33,7 @@ const executeAction: (
   }
 }
 
-export const createLogger: <S>(a: LoggerOption<S>) => MiddlewareFunction<S> = <S>(
-  options: LoggerOption<S>
-) => {
+export const createLogger = <S>(options: LoggerOption<S>) => {
   return reduxMiddlewareFactory<S>(
     (
       store: MiddlewareAPI<Dispatch<AnyAction>, S>,
@@ -92,10 +86,6 @@ export const createLogger: <S>(a: LoggerOption<S>) => MiddlewareFunction<S> = <S
   )
 }
 
-export const defaultLogger: <S>(
-  a: MiddlewareAPI<Dispatch<AnyAction>, S>
-) => (b: Dispatch<AnyAction>) => (c: AnyAction) => AnyAction = <S>(
-  store: MiddlewareAPI<Dispatch<AnyAction>, S>
-) => {
+export const defaultLogger = <S>(store: MiddlewareAPI<Dispatch<AnyAction>, S>) => {
   return createLogger<S>(getDefaultOptions<S>())(store)
 }

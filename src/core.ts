@@ -1,26 +1,15 @@
 import { formatTime } from './helpers'
-import { LoggerOption, LogEntry, LogLevel } from './types'
+import { LoggerOption, LogEntry, LogLevel, LogLevelType } from './types'
 import { AnyAction } from '@reduxjs/toolkit'
 
-const getLogLevel: (a: any, b: any, c: any, d: any) => LogLevel = (
-  level: any,
-  action: any,
+const getLogLevel = (
+  level: (b: AnyAction, payload: any, type: LogLevelType) => LogLevel,
+  action: AnyAction,
   payload: any,
-  type: any
-) => {
-  switch (typeof level) {
-    case 'object':
-      return typeof level[type] === 'function' ? level[type](...payload) : level[type]
-    case 'function':
-      return level(action)
-    default:
-      return level
-  }
-}
+  type: LogLevelType
+) => level(action, payload, type)
 
-const defaultTitleFormatter: <S>(
-  a: LoggerOption<S>
-) => (a: AnyAction, b: string, c: number) => string = <S>(options: LoggerOption<S>) => {
+const defaultTitleFormatter = <S>(options: LoggerOption<S>) => {
   const { timestamp, duration } = options
 
   return (action: AnyAction, time: string, took: number) => {
@@ -42,32 +31,32 @@ const printBasedOnLogLevel = (
   content: any
 ) => {
   switch (level) {
-    case 'error': {
+    case LogLevel.ERROR: {
       console.error(message, style, content)
       break
     }
-    case 'info': {
+    case LogLevel.INFO: {
       console.info(message, style, content)
       break
     }
-    case 'log': {
+    case LogLevel.LOG: {
       console.log(message, style, content)
       break
     }
-    case 'warn': {
+    case LogLevel.WARN: {
       console.warn(message, style, content)
       break
     }
   }
 }
 
-export const printLog: <S>(a: LogEntry<S>, b: LoggerOption<S>, c: boolean) => void = <S>(
+export const printLog = <S>(
   logEntry: LogEntry<S>,
   options: LoggerOption<S>,
   shouldLogDiff: boolean
 ) => {
   // Extraction
-  const { logger, actionTransformer, collapsed, colors, level } = options
+  const { logger, actionTransformer, collapsed, colors, logLevel } = options
   const titleFormatter = defaultTitleFormatter(options)
   const { startedTime, action, prevState, nextState, error, took } = logEntry
 
@@ -100,10 +89,10 @@ export const printLog: <S>(a: LogEntry<S>, b: LoggerOption<S>, c: boolean) => vo
     logger.log(title)
   }
 
-  const prevStateLevel = getLogLevel(level, formattedAction, [prevState], 'prevState')
-  const actionLevel = getLogLevel(level, formattedAction, [formattedAction], 'action')
-  const errorLevel = getLogLevel(level, formattedAction, [error, prevState], 'error')
-  const nextStateLevel = getLogLevel(level, formattedAction, [nextState], 'nextState')
+  const prevStateLevel = logLevel.prevState(formattedAction, prevState)
+  const actionLevel = logLevel.action(formattedAction)
+  const errorLevel = logLevel.error(formattedAction, error, prevState)
+  const nextStateLevel = logLevel.nextState(formattedAction, nextState)
 
   {
     const styles = `color: ${colors.prevState(prevState)}; font-weight: bold`
@@ -122,6 +111,6 @@ export const printLog: <S>(a: LogEntry<S>, b: LoggerOption<S>, c: boolean) => vo
 
   {
     const styles = `color: ${colors.nextState(nextState)}; font-weight: bold`
-    printBasedOnLogLevel(logger, errorLevel, '%c next state', styles, nextState)
+    printBasedOnLogLevel(logger, nextStateLevel, '%c next state', styles, nextState)
   }
 }

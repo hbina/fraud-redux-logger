@@ -1,10 +1,15 @@
 import { AnyAction } from '@reduxjs/toolkit'
 import { Option } from 'fp-ts/lib/Option'
 
-export type Transform<B, A> = (a: B) => A
+export type Transform<A, B> = (a: A) => B
 export type Void<T> = () => T
 export type LogTime = DateConstructor | Performance
-export type LogLevel = 'log' | 'console' | 'warn' | 'error' | 'info'
+export enum LogLevel {
+  LOG = 'LOG',
+  WARN = 'WARN',
+  ERROR = 'ERROR',
+  INFO = 'INFO',
+}
 
 export type LogEntry<S> = {
   action: AnyAction
@@ -15,19 +20,30 @@ export type LogEntry<S> = {
   nextState: S
 }
 
-export type LoggerOption<S> = {
-  level: LogLevel
+export type LoggerOption<S, TS = any, A = any, TA = any, E = any, TE = any> = {
+  // User console
   logger: Console
+  // Switches
   logErrors: boolean
-  collapsed: (a: S, b: AnyAction, c: LogEntry<S>) => boolean
-  predicate: (a: S, b: AnyAction) => boolean
   duration: boolean
   timestamp: boolean
-  stateTransformer: Transform<S, any>
-  actionTransformer: Transform<AnyAction, any>
-  errorTransformer: Transform<any, any>
+  // Transformers
+  stateTransformer: Transform<S, TS>
+  actionTransformer: Transform<A, TA>
+  errorTransformer: Transform<E, TE>
+  // Predicates
+  collapsed: (a: S, b: A, c: LogEntry<S>) => boolean
+  predicate: (a: S, b: A) => boolean
+  diffPredicate: (a: S, b: A) => boolean
+  // Customization
   colors: LogColor<S>
-  diffPredicate: (a: S, b: AnyAction) => boolean
+  // Log levels
+  logLevel: {
+    prevState: (a: TA, b: S) => LogLevel
+    action: (a: TA) => LogLevel
+    error: (a: TA, b: E, c: S) => LogLevel
+    nextState: (a: TA, b: S) => LogLevel
+  }
 }
 
 export type LogColor<S> = {

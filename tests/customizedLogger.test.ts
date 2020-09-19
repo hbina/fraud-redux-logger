@@ -1,6 +1,11 @@
-import { applyMiddleware, createStore } from '@reduxjs/toolkit'
+import { AnyAction, applyMiddleware, createStore } from '@reduxjs/toolkit'
 import { createLogger } from '../src'
-import { LogEntry, LoggerOption, LogLevel } from '../src/types'
+import { LogEntry, DefaultWebLoggerOption, LogLevel, Printer } from '../src/types'
+
+type TestState = {
+  value: number
+  actionBefore: ActionType[]
+}
 
 enum ActionType {
   PLUS_ONE = 'SET_ONE',
@@ -9,13 +14,8 @@ enum ActionType {
   SET_THROW = 'SET_THROW',
 }
 
-type TestState = {
-  value: number
-  actionBefore: ActionType[]
-}
-
-type TransformedState = {
-  state: TestState
+type TestError = {
+  error: Error
   message: string
 }
 
@@ -45,93 +45,21 @@ export const reducer = (state = defaultState, action: TestAction) => {
   }
 }
 
-type TransformedAction = {
-  type: ActionType
-  message: string
-}
+type CustomOption = {}
 
-type TestError = {
-  error: any
-}
-
-type TransformedError = {
-  error: TestError
-  message: string
-}
-
-const customOptions: LoggerOption<
-  TestState,
-  TestError,
-  TransformedState,
-  TransformedAction,
-  TransformedError
-> = {
-  logLevel: {
-    prevState: (a: TransformedAction, b: TestState) => {
-      if (b.actionBefore.includes(a.type)) {
-        return LogLevel.LOG
-      } else {
-        return LogLevel.WARN
-      }
-    },
-    action: (a: TransformedAction) => {
-      switch (a.type) {
-        case ActionType.PLUS_ONE: {
-          return LogLevel.ERROR
-        }
-        case ActionType.PLUS_TWO: {
-          return LogLevel.INFO
-        }
-        case ActionType.PLUS_THREE: {
-          return LogLevel.LOG
-        }
-        case ActionType.SET_THROW: {
-          return LogLevel.WARN
-        }
-        default: {
-          return LogLevel.LOG
-        }
-      }
-    },
-    error: (a: TransformedAction, b: TestError, c: TestState) => LogLevel.LOG,
-    nextState: (a: TransformedAction, b: TestState) => LogLevel.LOG,
-  },
-  logger: console,
-  showError: true,
-  diffPredicate: (_a: TestState, _b: TestAction) => false,
-  collapsePredicate: (a: TestState, b: TestAction, c: LogEntry<TestState, TestError>) => false,
-  logPredicate: (a: TestState, b: TestAction) => true,
-  showDuration: false,
-  showTimestamp: true,
-  stateTransformer: (state: TestState) => {
-    return {
-      state: state,
-      message: 'transformed state!',
-    }
-  },
-  actionTransformer: (action: TestAction) => {
-    return {
-      type: action.type,
-      message: 'transformed action!',
-    }
-  },
-  errorTransformer: (error: TestError) => {
-    return {
-      error: error,
-      message: 'transformed error!',
-    }
-  },
-  colors: {
-    title: () => 'inherit',
-    prevState: () => '#9E9E9E',
-    action: () => '#03A9F4',
-    nextState: () => '#4CAF50',
-    error: () => '#F20404',
+const customPrinter: Printer<TestState, TestError, CustomOption> = {
+  logError: true,
+  logPredicate: (s: TestState, b: AnyAction) => true,
+  printLog: (logEntry: LogEntry<TestState, TestError>, customOption: CustomOption) => {
+    console.log(`logEntry:${JSON.stringify(logEntry)}`)
   },
 }
 
 const createOption = describe('Maps an action of certain type to another type of action.', () => {
-  const store = createStore(reducer, applyMiddleware(createLogger(customOptions)))
+  const store = createStore(
+    reducer,
+    applyMiddleware(createLogger<TestState, TestError, CustomOption>(customPrinter, {}))
+  )
 
   it('Signature must match what redux expects', () => {
     ;[

@@ -1,5 +1,5 @@
 import { applyMiddleware, createStore } from '@reduxjs/toolkit'
-import { defaultLogger } from '../src'
+import { getDefaultLogger } from '../src'
 
 enum ActionType {
   PLUS_ONE = 'SET_ONE',
@@ -11,6 +11,11 @@ enum ActionType {
 type TestState = {
   value: number
   actionBefore: ActionType[]
+}
+
+type TestError = {
+  error: Error
+  message: string
 }
 
 const defaultState: TestState = {
@@ -40,7 +45,7 @@ export const reducer = (state = defaultState, action: TestAction) => {
 }
 
 describe('Maps an action of certain type to another type of action.', () => {
-  const store = createStore(reducer, applyMiddleware(defaultLogger))
+  const store = createStore(reducer, applyMiddleware(getDefaultLogger<TestState, TestError>()))
 
   it('Signature must match what redux expects', () => {
     ;[

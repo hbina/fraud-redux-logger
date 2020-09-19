@@ -20,7 +20,13 @@ export type LogEntry<S, E> = {
   readonly nextState: S
 }
 
-export type LoggerOption<S, E, TS, TA, TE> = {
+export type Printer<S, E, O> = {
+  readonly logError: boolean
+  readonly logPredicate: (s: S, b: AnyAction) => boolean
+  readonly printLog: (s: LogEntry<S, E>, o: O) => void
+}
+
+export type DefaultWebLoggerOption<S, E, TS = S, TA = AnyAction, TE = E> = {
   // User console
   readonly logger: Console
   // Switches

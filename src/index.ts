@@ -1,11 +1,10 @@
 import { some, none, isSome } from 'fp-ts/lib/Option'
-import { MiddlewareFunction, reduxMiddlewareFactory } from 'redux-middleware-factory'
-import { Action, AnyAction, Dispatch, MiddlewareAPI } from '@reduxjs/toolkit'
+import { reduxMiddlewareFactory } from 'redux-middleware-factory'
+import { AnyAction, Dispatch, MiddlewareAPI } from '@reduxjs/toolkit'
 
-import { LogEntry, LoggerOption, LogSwapchain, ExecuteActionResult } from './types'
+import { DefaultWebLoggerOption, Printer } from './types'
 import { timer } from './helpers'
-import { getDefaultOptions } from './defaults'
-import { printLog } from './core'
+import { getDefaultOptions, getDefaultWebPrinter } from './defaults'
 
 const executeAction = (
   next: (a: AnyAction) => AnyAction,
@@ -13,7 +12,6 @@ const executeAction = (
   shouldLogError: boolean
 ) => {
   if (shouldLogError) {
-    /// TODO :: Is this a right way to handle throwing actions?
     try {
       return {
         result: next(action),
@@ -33,14 +31,14 @@ const executeAction = (
   }
 }
 
-export const createLogger = <S, TS, TA, E, TE>(options: LoggerOption<S, TS, TA, E, TE>) => {
+export const createLogger = <S, E, O>(printer: Printer<S, E, O>, options: O) => {
   return reduxMiddlewareFactory(
     (
       store: MiddlewareAPI<Dispatch<AnyAction>, S>,
       next: Dispatch<AnyAction>,
       action: AnyAction
     ) => {
-      const { logPredicate } = options
+      const { logError, logPredicate, printLog } = printer
       if (!logPredicate(store.getState(), action)) {
         return next(action)
       } else {
@@ -52,7 +50,7 @@ export const createLogger = <S, TS, TA, E, TE>(options: LoggerOption<S, TS, TA, 
         const prevState = store.getState()
 
         // Execute action
-        const result = executeAction(next, action, options.showError)
+        const result = executeAction(next, action, logError)
 
         // After log
         const nextTime = timer.now()
@@ -86,6 +84,11 @@ export const createLogger = <S, TS, TA, E, TE>(options: LoggerOption<S, TS, TA, 
   )
 }
 
-export const defaultLogger = <S, E>(store: MiddlewareAPI<Dispatch<AnyAction>, S>) => {
-  return createLogger(getDefaultOptions<S, E>())(store)
+export const getDefaultLogger = <S, E>() => <S, E>(
+  store: MiddlewareAPI<Dispatch<AnyAction>, S>
+) => {
+  return createLogger<S, E, DefaultWebLoggerOption<S, E>>(
+    getDefaultWebPrinter<S, E>(),
+    getDefaultOptions<S, E>()
+  )(store)
 }

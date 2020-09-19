@@ -1,7 +1,48 @@
 import { Diff, diff } from 'deep-diff'
-import { DiffKind } from './types'
 
-// https://github.com/flitbit/diff#differences
+import { DiffKind, DefaultWebLoggerOption, LogLevel } from './types'
+import { AnyAction } from '@reduxjs/toolkit'
+
+export const defaultTitleFormatter = <S, E, TS, TA, TE>(
+  options: DefaultWebLoggerOption<S, E, TS, TA, TE>
+) => {
+  const { showTimestamp, showDuration } = options
+
+  return (action: AnyAction, time: string, took: number) => {
+    let parts = ['action', `%c ${String(action.type)}`]
+    if (showTimestamp) parts.push(`%c @ ${time}`)
+    if (showDuration) parts.push(`%c (in ${took.toFixed(2)} ms)`)
+    return parts.join(' ')
+  }
+}
+
+export const printBasedOnLogLevel = <T>(
+  logger: Console,
+  level: LogLevel,
+  message: string,
+  style: string,
+  content: T
+) => {
+  switch (level) {
+    case LogLevel.ERROR: {
+      logger.error(message, style, content)
+      break
+    }
+    case LogLevel.INFO: {
+      logger.info(message, style, content)
+      break
+    }
+    case LogLevel.LOG: {
+      logger.log(message, style, content)
+      break
+    }
+    case LogLevel.WARN: {
+      logger.warn(message, style, content)
+      break
+    }
+  }
+}
+
 const dictionary = {
   E: {
     color: '#2196F3',

@@ -1,6 +1,6 @@
 import { AnyAction, applyMiddleware, createStore } from '@reduxjs/toolkit'
 import { createLogger } from '../src'
-import { LogEntry, DefaultWebLoggerOption, LogLevel, Printer } from '../src/types'
+import { LogEntry, Printer } from '../src/types'
 
 type TestState = {
   value: number

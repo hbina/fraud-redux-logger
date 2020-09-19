@@ -84,7 +84,7 @@ export const createLogger = <S, E, O>(printer: Printer<S, E, O>, options: O) => 
   )
 }
 
-export const getDefaultLogger = <S, E>() => <S, E>(
+export const getDefaultWebLogger = <S, E>() => <S, E>(
   store: MiddlewareAPI<Dispatch<AnyAction>, S>
 ) => {
   return createLogger<S, E, DefaultWebLoggerOption<S, E>>(

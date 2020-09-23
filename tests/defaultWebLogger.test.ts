@@ -1,5 +1,7 @@
 import { applyMiddleware, createStore } from '@reduxjs/toolkit'
-import { getDefaultWebLogger } from '../src'
+import { createLogger } from '../src'
+import { DefaultWebLoggerOption } from '../src/types'
+import { getDefaultWebPrinter, getDefaultOptions } from '../src/defaults'
 
 enum ActionType {
   PLUS_ONE = 'SET_ONE',
@@ -44,10 +46,25 @@ export const reducer = (state = defaultState, action: TestAction) => {
   }
 }
 
-describe('Maps an action of certain type to another type of action.', () => {
-  const store = createStore(reducer, applyMiddleware(getDefaultWebLogger<TestState, TestError>()))
+class MockConsole {
+  log(content: string) {
+    console.log('hello world')
+  }
+}
 
-  it('Signature must match what redux expects', () => {
+describe('Test default logger specialized for the web.', () => {
+  const mockOption = {
+    ...getDefaultOptions<TestState, TestError>(),
+    console: MockConsole,
+  }
+  const mockMiddleware = createLogger<
+    TestState,
+    TestError,
+    DefaultWebLoggerOption<TestState, TestError>
+  >(getDefaultWebPrinter<TestState, TestError>(), mockOption)
+  const store = createStore(reducer, applyMiddleware(mockMiddleware))
+
+  it('Execute a bunch of actions and test the output', () => {
     ;[
       { type: ActionType.PLUS_ONE, expected: 1 },
       { type: ActionType.PLUS_TWO, expected: 3 },

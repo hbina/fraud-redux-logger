@@ -19,8 +19,8 @@
   "scripts": {
     "build": "tsc",
     "lint": "tslint --project .",
-    "prepare": "yarn test && yarn build",
-    "test": "jest --coverage"
+    "test": "jest --coverage --watch",
+    "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\""
   },
   "prettier": {
     "semi": false,
@@ -28,6 +28,7 @@
   },
   "dependencies": {
     "@reduxjs/toolkit": "^1.4.0",
+    "@types/handlebars": "^4.1.0",
     "deep-diff": "^1.0.2",
     "fp-ts": "^2.8.2",
     "redux-middleware-factory": "^0.1.0"

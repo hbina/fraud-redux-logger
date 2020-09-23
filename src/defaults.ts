@@ -4,7 +4,10 @@ import { defaultTitleFormatter, printBasedOnLogLevel, diffLogger } from './defau
 import { formatTime } from './helpers'
 import { LogEntry, DefaultWebLoggerOption, LogLevel, Printer } from './types'
 
-export const getDefaultWebPrinter: <S, E>() => Printer<S, E, DefaultWebLoggerOption<S, E>> = <S, E>() => {
+export const getDefaultWebPrinter: <S, E>() => Printer<S, E, DefaultWebLoggerOption<S, E>> = <
+  S,
+  E
+>() => {
   return {
     logError: true,
     logPredicate: (s: S, b: AnyAction) => true,

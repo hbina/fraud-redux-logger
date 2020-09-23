@@ -1,5 +1,8 @@
 # Fraud Redux-Logger
 
+![npm](https://img.shields.io/npm/v/fraud-redux-logger)
+![Codecov](https://img.shields.io/codecov/c/github/hbina/fraud-redux-logger)
+
 > `redux-logger` with more features
 
 An attempt at implementing `redux-logger` using `Typescript` with more features!
@@ -37,8 +40,11 @@ type CustomOption = {}
 
 const basicPrinter: Printer<TestState, TestError, CustomOption> = {
   // Are we logging exceptions?
+  // For this one, yes!
   logError: true,
   // If this function returns true, we log. Else, we dont't.
+  // For performance or logging reasons, we might want to skip logging.
+  // In this case, we always log.
   logPredicate: (s: TestState, b: AnyAction) => true,
   // The logging function.
   printLog: (logEntry: LogEntry<TestState, TestError>, customOption: CustomOption) => {

@@ -50,9 +50,7 @@ type CustomOption = {}
 const customPrinter: Printer<TestState, TestError, CustomOption> = {
   logError: true,
   logPredicate: (s: TestState, b: AnyAction) => true,
-  printLog: (logEntry: LogEntry<TestState, TestError>, customOption: CustomOption) => {
-    console.log(`logEntry:${JSON.stringify(logEntry)}`)
-  },
+  printLog: (logEntry: LogEntry<TestState, TestError>, customOption: CustomOption) => {},
 }
 
 const createOption = describe('Maps an action of certain type to another type of action.', () => {

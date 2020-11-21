@@ -47,9 +47,6 @@ export const reducer = (state = defaultState, action: TestAction) => {
 }
 
 class MockConsole {
-  log(content: string) {
-    console.log('hello world')
-  }
 }
 
 describe('Test default logger specialized for the web.', () => {

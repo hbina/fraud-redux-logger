@@ -19,7 +19,8 @@
   "scripts": {
     "build": "tsc",
     "lint": "tslint --project .",
-    "test": "jest --coverage --watch",
+    "test": "jest --coverage",
+    "test:watch": "jest --coverage --watch",
     "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\""
   },
   "prettier": {

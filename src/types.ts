@@ -74,7 +74,7 @@ export type LogSwapchain = {
   readonly after: Option<number>
 }
 
-export type ExecuteActionResult = {
+export type ExecuteActionResult<T> = {
   readonly result: AnyAction
-  readonly error: Option<any>
+  readonly error: Option<T>
 }

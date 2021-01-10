@@ -10,7 +10,7 @@ export const getDefaultWebPrinter: <S, E>() => Printer<S, E, DefaultWebLoggerOpt
 >() => {
   return {
     logError: true,
-    logPredicate: (s: S, b: AnyAction) => true,
+    logPredicate: (_s: S, _b: AnyAction) => true,
     printLog: (logEntry: LogEntry<S, E>, options: DefaultWebLoggerOption<S, E>) => {
       // Extraction
       const {
@@ -117,23 +117,23 @@ export const getDefaultOptions = <S, E>() => {
     actionTransformer: (action: AnyAction) => action,
     errorTransformer: (error: E) => error,
     // Predicates
-    collapsePredicate: (a: S, b: AnyAction, _c: LogEntry<S, E>) => true,
-    logPredicate: (a: S, b: AnyAction) => true,
-    diffPredicate: (a: S, b: AnyAction) => true,
+    collapsePredicate: (_a: S, _b: AnyAction, _c: LogEntry<S, E>) => true,
+    logPredicate: (_a: S, _b: AnyAction) => true,
+    diffPredicate: (_a: S, _b: AnyAction) => true,
     // Customization
     colors: {
-      title: (a: AnyAction) => 'inherit',
-      prevState: (a: S) => '#9E9E9E',
-      action: (a: AnyAction) => '#03A9F4',
-      nextState: (a: S) => '#4CAF50',
-      error: (a: E, b: S) => '#F20404',
+      title: (_a: AnyAction) => 'inherit',
+      prevState: (_a: S) => '#9E9E9E',
+      action: (_a: AnyAction) => '#03A9F4',
+      nextState: (_a: S) => '#4CAF50',
+      error: (_a: E, _b: S) => '#F20404',
     },
     // Log level
     logLevel: {
-      prevState: (a: AnyAction, b: S) => LogLevel.LOG,
-      action: (a: AnyAction) => LogLevel.LOG,
-      error: (a: AnyAction, b: E, c: S) => LogLevel.LOG,
-      nextState: (a: AnyAction, b: S) => LogLevel.LOG,
+      prevState: (_a: AnyAction, _b: S) => LogLevel.LOG,
+      action: (_a: AnyAction) => LogLevel.LOG,
+      error: (_a: AnyAction, _b: E, _c: S) => LogLevel.LOG,
+      nextState: (_a: AnyAction, _b: S) => LogLevel.LOG,
     },
   }
 }
